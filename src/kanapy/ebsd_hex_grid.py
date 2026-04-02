@@ -112,11 +112,23 @@ def quat_markley_mean(quats, weights=None):
 def resample_quat_knn_markley(quat_src, idx, dist, p=2.0):
     """
     Quaternion resampling using k-NN, IDW weights, and Markley mean.
-    quat_src: (N,4)
-    idx/dist: (M,k)
-    returns (M,4)
+
+    quat_src: (N, 4)
+    idx:      (M, k) or (M,)
+    dist:     (M, k) or (M,)
+    returns:  (M, 4)
     """
-    Qs = _normalize_quat(quat_src.astype(float, copy=False))
+    Qs = _normalize_quat(np.asarray(quat_src, dtype=float))
+
+    idx = np.asarray(idx)
+    dist = np.asarray(dist)
+
+    # Make sure idx/dist are always 2D: (M, k)
+    if idx.ndim == 1:
+        idx = idx[:, None]
+    if dist.ndim == 1:
+        dist = dist[:, None]
+
     M, k = idx.shape
     out = np.empty((M, 4), dtype=float)
 
@@ -127,12 +139,12 @@ def resample_quat_knn_markley(quat_src, idx, dist, p=2.0):
 
     nonzero = ~zero
     if np.any(nonzero):
-        w = _idw_weights(dist[nonzero], p=p)  # (M', k)
-        neigh = Qs[idx[nonzero]]             # (M', k, 4)
+        w = _idw_weights(dist[nonzero], p=p)      # (M', k)
+        neigh = Qs[idx[nonzero]]                  # (M', k, 4)
 
-        # Sign alignment: align all neighbors to the first neighbor
-        ref = neigh[:, :1, :]                # (M',1,4)
-        sgn = np.sign(np.sum(neigh * ref, axis=2, keepdims=True))  # (M',k,1)
+        # Align signs to first neighbor
+        ref = neigh[:, :1, :]                     # (M', 1, 4)
+        sgn = np.sign(np.sum(neigh * ref, axis=2, keepdims=True))
         sgn[sgn == 0] = 1.0
         neigh_aligned = neigh * sgn
 

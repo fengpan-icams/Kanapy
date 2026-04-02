@@ -1795,12 +1795,18 @@ class EBSDmap:
                 ori_e = Orientation.from_euler(self.emap[mask].orientations.in_euler_fundamental_region())
                 ori_q = np.stack([ori_e.a, ori_e.b, ori_e.c, ori_e.d]).T
                 rgb_val = ipf_key.orientation2color(ori_e)
-                ax = _plot_hex_rgb(xy, rgb_val, self.dx, self.dy)
+                #ax = _plot_hex_rgb(xy, rgb_val, self.dx, self.dy)
+                #xg, yg, phase_g, ci_g, quat_g = \
+                #    resample_ebsd_to_rect_grid(xy[self.emap.is_indexed],
+                #                               self.emap.phase_id[self.emap.is_indexed],
+                #                               ori_q,
+                #                               val_ci[self.emap.is_indexed],
+                #                               nx=self.sh_y, ny=self.sh_x)
                 xg, yg, phase_g, ci_g, quat_g = \
-                    resample_ebsd_to_rect_grid(xy[self.emap.is_indexed],
-                                               self.emap.phase_id[self.emap.is_indexed],
+                    resample_ebsd_to_rect_grid(xy[mask],
+                                               self.emap.phase_id[mask],
                                                ori_q,
-                                               val_ci[self.emap.is_indexed],
+                                               val_ci[mask],
                                                nx=self.sh_y, ny=self.sh_x)
                 # get Euler Angles
                 q_flat = quat_g.reshape(-1, 4)
